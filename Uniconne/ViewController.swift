@@ -1,0 +1,76 @@
+//
+//  ViewController.swift
+//  Uniconne
+//
+//  Created by uniconne on 09/08/2021.
+//
+
+import UIKit
+import WebKit
+
+class ViewController: UIViewController {
+    
+    let webView: WKWebView = {
+        let prefs = WKWebpagePreferences()
+        prefs.allowsContentJavaScript = true
+        
+        let configuration = WKWebViewConfiguration()
+        configuration.defaultWebpagePreferences = prefs
+        let webView = WKWebView(frame: .zero,
+                                configuration: configuration)
+        
+        return webView
+    }()
+    
+    var refController: UIRefreshControl = UIRefreshControl()
+        
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        // Do any additional setup after loading the view.
+        view.addSubview(webView)
+        
+        guard let url = URL(string: "https://www.uniconne.com/home") else {
+            return
+        }
+        webView.load(URLRequest(url: url))
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let token = appDelegate.fcmTokenn
+        
+        let jsStyle = """
+                    javascript:(function() {
+                    localStorage.setItem('regToken', '\(token)')
+                    })()
+                """
+        let jsScript = WKUserScript(source: jsStyle, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        webView.configuration.userContentController.addUserScript(jsScript)
+        
+    }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if navigationAction.navigationType == .linkActivated  {
+                if let url = navigationAction.request.url,
+                    let host = url.host, !host.hasPrefix("www.uniconne.com"),
+                    UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                    print(url)
+                    print("Redirected to browser. No need to open it locally")
+                    decisionHandler(.cancel)
+                } else {
+                    print("Open it locally")
+                    decisionHandler(.allow)
+                }
+            } else {
+                print("not a user click")
+                decisionHandler(.allow)
+            }
+        }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        webView.frame = view.bounds
+    }
+
+
+}
+
