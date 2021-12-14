@@ -7,16 +7,20 @@
 
 import UIKit
 import Firebase
+import FirebaseMessaging
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
 
 let gcmMessageIDKey = "Uniconne.com"
-var fcmTokenn = "jj"
+var fcmTokenn = "ja"
+var window: UIWindow?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        
+        //let nextViewController = self.window?.rootViewController as? ViewController
+       //nextViewController?.token = "jaa"
+        FirebaseApp.configure()
         if #available(iOS 10.0, *) {
           // For iOS 10 display notification (sent via APNS)
           UNUserNotificationCenter.current().delegate = self
@@ -40,14 +44,16 @@ var fcmTokenn = "jj"
           if let error = error {
             print("Error fetching FCM registration token: \(error)")
           } else if let token = token {
-            print("FCM registration token: \(token)")
+            print("FCM registration token init: \(token)")
             self.fcmTokenn = token
+           // let nextViewController = self.window?.rootViewController as? ViewController
+           // nextViewController?.token = token
             //self.fcmRegTokenMessage.text  = "Remote FCM registration token: \(token)"
           }
                         
         }
         
-        FirebaseApp.configure()
+        
         return true
     }
 
@@ -56,6 +62,7 @@ var fcmTokenn = "jj"
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         // Called when a new scene session is being created.
         // Use this method to select a configuration to create the new scene with.
+        print("Hello worldy")
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
@@ -66,21 +73,55 @@ var fcmTokenn = "jj"
     }
     //Messaging
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-      print("Firebase registration token: \(String(describing: fcmToken))")
+        //Messaging.messaging().token { token, error in
+         // if let error = error {
+           // print("Error fetching FCM registration token: \(error)")
+        // } else if let token = token {
+         //   print("FCM registration token: \(token)")
+         //   NSLog("InstanceID token: %@", token);
+         //   let nextViewController = self.window?.rootViewController as? ViewController
+          //  nextViewController?.token = token
+            //self.fcmRegTokenMessage.text  = "Remote FCM registration token: \(token)"
+         // }
+        //}
+        print("Hello world Hey")
+        print("Firebase registration token rec: \(String(describing: fcmToken))")
       let dataDict: [String: String] = ["token": fcmToken ?? ""]
       NotificationCenter.default.post(
         name: Notification.Name("FCMToken"),
         object: nil,
         userInfo: dataDict
       )
+        
         self.fcmTokenn = fcmToken ?? ""
-      // TODO: If necessary send token to application server.
+        //let nextViewController = self.window?.rootViewController as? ViewController
+        //nextViewController?.token = fcmToken
+        // TODO: If necessary send token to application server.
       // Note: This callback is fired at each app startup and whenever a new token is generated.
     }
 
-    func application(application: UIApplication,
-                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-      Messaging.messaging().apnsToken = deviceToken
+    func application(_ application: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) -> String {
+        print("Hello world1")
+        Messaging.messaging().apnsToken = deviceToken
+        print(deviceToken.map({String(format: "%20x", $0)}).joined())
+        self.fcmTokenn = deviceToken.map({String(format: "%20x", $0)}).joined()
+        //let nextViewController = self.window?.rootViewController as? ViewController
+       //nextViewController?.token = deviceToken.map({String(format: "%20x", $0)}).joined()
+        return deviceToken.map({String(format: "%20x", $0)}).joined()
+        //Messaging.messaging().token { (token, error) in
+              //  if let error = error {
+                 //   print("Error fetching remote instance ID: \(error.localizedDescription)")
+               // } else if let token = token {
+                    //print("Token is \(token)")
+                   // let nextViewController = self.window?.rootViewController as? ViewController
+                  // nextViewController?.token = token
+                    
+               // }
+            //}
+        //let token = Messaging.messaging().fcmToken
+       // let nextViewController = self.window?.rootViewController as? ViewController
+      //  nextViewController?.token = token
     }
     
       // Receive displayed notifications for iOS 10 devices.
@@ -152,5 +193,11 @@ var fcmTokenn = "jj"
         return true
     }
     
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data){
+        print(deviceToken.map({String(format: "%20x", $0)}).joined())
+        self.fcmTokenn = deviceToken.map({String(format: "%20x", $0)}).joined()
+        //let nextViewController = self.window?.rootViewController as? ViewController
+       //nextViewController?.token = deviceToken.map({String(format: "%20x", $0)}).joined()
+    }
 }
 

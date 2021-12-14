@@ -10,7 +10,7 @@ import WebKit
 import CoreLocation
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
-    
+    //var token: String?
     var locationManager: CLLocationManager?
     
     let webView: WKWebView = {
@@ -19,6 +19,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         
         let configuration = WKWebViewConfiguration()
         configuration.defaultWebpagePreferences = prefs
+        configuration.allowsInlineMediaPlayback = true
         let webView = WKWebView(frame: .zero,
                                 configuration: configuration)
         
@@ -43,15 +44,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         webView.load(URLRequest(url: url))
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let token = appDelegate.fcmTokenn
         
-        let jsStyle = """
-                    javascript:(function() {
-                    localStorage.setItem('regToken', '\(token)')
-                    })()
-                """
-        let jsScript = WKUserScript(source: jsStyle, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
-        webView.configuration.userContentController.addUserScript(jsScript)
+        DispatchQueue.main.asyncAfter(deadline: .now()+30){
+       let token = appDelegate.fcmTokenn
+        
+            let jsStyle = """
+                        javascript:(function() {
+                        localStorage.setItem('regToken', '\(token))')
+                        })()
+                    """
+            let jsScript = WKUserScript(source: jsStyle, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+            self.webView.configuration.userContentController.addUserScript(jsScript)
+            print("Tokenn ooo: \(token)")
+            
+        }
+        
         
     }
     
